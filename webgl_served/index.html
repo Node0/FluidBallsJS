@@ -148,6 +148,62 @@
           <input data-setting="contactViscosity" type="range" min="0" max="1" step="0.01">
           <input data-setting="contactViscosity" class="number" type="number" min="0" max="1" step="0.01">
         </label>
+        <label class="control-row">
+          <span>Clump affinity</span>
+          <input data-setting="clumpAffinity" type="range" min="0" max="5000" step="10">
+          <input data-setting="clumpAffinity" class="number" type="number" min="0" max="5000" step="10">
+        </label>
+        <label class="control-row">
+          <span>Split energy</span>
+          <input data-setting="splitEnergy" type="range" min="0" max="1200" step="10">
+          <input data-setting="splitEnergy" class="number" type="number" min="0" max="1200" step="10">
+        </label>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Surface &amp; light</summary>
+      <div class="section-body">
+        <label class="control-row">
+          <span>Light angle °</span>
+          <input data-setting="lightAngle" type="range" min="0" max="359" step="1">
+          <input data-setting="lightAngle" class="number" type="number" min="0" max="359" step="1">
+        </label>
+        <label class="control-row">
+          <span>Light width</span>
+          <input data-setting="lightWidth" type="range" min="0.05" max="1.5" step="0.01">
+          <input data-setting="lightWidth" class="number" type="number" min="0.05" max="1.5" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Light softness</span>
+          <input data-setting="lightSoftness" type="range" min="0" max="1" step="0.01">
+          <input data-setting="lightSoftness" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Refraction (IOR)</span>
+          <input data-setting="ior" type="range" min="1" max="2.5" step="0.01">
+          <input data-setting="ior" class="number" type="number" min="1" max="2.5" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Clarity</span>
+          <input data-setting="clarity" type="range" min="0" max="1" step="0.01">
+          <input data-setting="clarity" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Translucency</span>
+          <input data-setting="translucency" type="range" min="0" max="1" step="0.01">
+          <input data-setting="translucency" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Light height</span>
+          <input data-setting="bandPosition" type="range" min="0" max="1" step="0.01">
+          <input data-setting="bandPosition" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Light falloff</span>
+          <input data-setting="lightFalloff" type="range" min="0" max="6" step="0.05">
+          <input data-setting="lightFalloff" class="number" type="number" min="0" max="6" step="0.05">
+        </label>
       </div>
     </details>
 
@@ -155,11 +211,39 @@
       <summary>Appearance</summary>
       <div class="section-body">
         <label class="select-row">
+          <span>Render mode</span>
+          <select data-setting="renderMode">
+            <option value="sphere">Lit spheres</option>
+            <option value="metaball">Metaball fluid</option>
+          </select>
+        </label>
+        <label class="control-row" data-render-mode="metaball">
+          <span>Fusion threshold</span>
+          <input data-setting="fusionThreshold" type="range" min="0.1" max="2" step="0.01">
+          <input data-setting="fusionThreshold" class="number" type="number" min="0.1" max="2" step="0.01">
+        </label>
+        <label class="control-row" data-render-mode="metaball">
+          <span>Edge softness</span>
+          <input data-setting="edgeSoftness" type="range" min="0.005" max="0.4" step="0.005">
+          <input data-setting="edgeSoftness" class="number" type="number" min="0.005" max="0.4" step="0.005">
+        </label>
+        <label class="control-row" data-render-mode="metaball">
+          <span>Fusion reach</span>
+          <input data-setting="fieldRadius" type="range" min="1" max="2.5" step="0.05">
+          <input data-setting="fieldRadius" class="number" type="number" min="1" max="2.5" step="0.05">
+        </label>
+        <label class="control-row" data-render-mode="metaball">
+          <span>Specular fusion</span>
+          <input data-setting="specFusion" type="range" min="1" max="12" step="0.5">
+          <input data-setting="specFusion" class="number" type="number" min="1" max="12" step="0.5">
+        </label>
+        <label class="select-row">
           <span>Color mode</span>
           <select data-setting="colorMode">
             <option value="cycle">Color cycle</option>
             <option value="speed">Velocity heat</option>
             <option value="direction">Direction map</option>
+            <option value="pressure">Pressure field</option>
             <option value="mono">Single hue</option>
           </select>
         </label>
@@ -177,6 +261,15 @@
           <span>Cycle speed °/s</span>
           <input data-setting="colorSpeed" type="range" min="-120" max="120" step="1">
           <input data-setting="colorSpeed" class="number" type="number" min="-120" max="120" step="1">
+        </label>
+        <label class="control-row" data-color-mode="pressure">
+          <span>Pressure scale</span>
+          <input data-setting="pressureScale" type="range" min="0.5" max="40" step="0.5">
+          <input data-setting="pressureScale" class="number" type="number" min="0.5" max="40" step="0.5">
+        </label>
+        <label class="toggle-row" data-color-mode="pressure">
+          <span>Shared-colour diffusion</span>
+          <input data-setting="pressureDiffuse" type="checkbox">
         </label>
         <label class="control-row">
           <span>Glow</span>

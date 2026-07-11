@@ -28,6 +28,8 @@
           this.settings[key] = value;
           this.syncSetting(key, element);
           if (key === 'sizeMode') this.syncSizeMode();
+          if (key === 'colorMode') this.syncColorMode();
+          if (key === 'renderMode') this.syncRenderMode();
           this.callbacks.onSettingChanged?.(key, value);
         });
         if (element.type === 'number') {
@@ -88,9 +90,25 @@
       });
     }
 
+    syncColorMode() {
+      const mode = this.settings.colorMode;
+      document.querySelectorAll('[data-color-mode]').forEach((element) => {
+        element.hidden = element.dataset.colorMode !== mode;
+      });
+    }
+
+    syncRenderMode() {
+      const mode = this.settings.renderMode === 'metaball' ? 'metaball' : 'sphere';
+      document.querySelectorAll('[data-render-mode]').forEach((element) => {
+        element.hidden = element.dataset.renderMode !== mode;
+      });
+    }
+
     syncAll() {
       for (const key of this.elementsBySetting.keys()) this.syncSetting(key);
       this.syncSizeMode();
+      this.syncColorMode();
+      this.syncRenderMode();
     }
 
     setPaused(paused) {

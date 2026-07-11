@@ -20,6 +20,15 @@
       this.r = new Float32Array(0);
       this.invMass = new Float32Array(0);
       this.hueSeed = new Float32Array(0);
+      // Pressure field: `pressure` is the per-step penetration sum accumulated
+      // during contact solving; `pSmooth` is its EMA (stops per-substep strobing);
+      // `pField` is the optional Laplacian-diffused version used by the "shared
+      // colour" pressure mode. pTmp/pCount are scratch for the diffusion passes.
+      this.pressure = new Float32Array(0);
+      this.pSmooth = new Float32Array(0);
+      this.pField = new Float32Array(0);
+      this.pTmp = new Float32Array(0);
+      this.pCount = new Float32Array(0);
       this.next = new Int32Array(0);
       this.head = new Int32Array(0);
       this.cols = 1;
@@ -63,6 +72,11 @@
       this.r = grow(this.r);
       this.invMass = grow(this.invMass);
       this.hueSeed = grow(this.hueSeed);
+      this.pressure = grow(this.pressure);
+      this.pSmooth = grow(this.pSmooth);
+      this.pField = grow(this.pField);
+      this.pTmp = grow(this.pTmp);
+      this.pCount = grow(this.pCount);
       this.next = grow(this.next, Int32Array);
       this.capacity = nextCapacity;
     }
@@ -323,10 +337,73 @@
       }
     }
 
+    // Surface tension / cohesion: pull pairs together across the small gap just
+    // beyond contact so the fluid holds itself in blobs. Applied as a mass-weighted
+    // velocity impulse before integration (like the mouse field). A ±2 grid ring
+    // reliably catches near-contact pairs even for the largest balls. Costs
+    // nothing when clumpAffinity is 0. Reads pSmooth from the previous step for the
+    // density boost, so packed clusters resist tearing more than loose ones.
+    applyCohesion(dt) {
+      const affinity = Number(this.settings.clumpAffinity);
+      if (!(affinity > 0)) return;
+      this.buildGrid();
+      const range = 1.6;               // cohesion reach as a multiple of contact distance
+      const refPressure = 12;          // pSmooth scale where the density boost saturates
+      const splitEnergy = Number(this.settings.splitEnergy);
+      const cols = this.cols;
+      const rows = this.rows;
+      const cell = this.cellSize;
+      for (let i = 0; i < this.count; i += 1) {
+        const xi = this.x[i];
+        const yi = this.y[i];
+        const ri = this.r[i];
+        const wi = this.invMass[i];
+        const cx = clamp(Math.floor(xi / cell), 0, cols - 1);
+        const cy = clamp(Math.floor(yi / cell), 0, rows - 1);
+        for (let oy = -2; oy <= 2; oy += 1) {
+          const gy = cy + oy;
+          if (gy < 0 || gy >= rows) continue;
+          for (let ox = -2; ox <= 2; ox += 1) {
+            const gx = cx + ox;
+            if (gx < 0 || gx >= cols) continue;
+            let j = this.head[gy * cols + gx];
+            while (j !== -1) {
+              if (j > i) {
+                const minD = ri + this.r[j];
+                const maxD = minD * range;
+                const dx = this.x[j] - xi;
+                const dy = this.y[j] - yi;
+                const d2 = dx * dx + dy * dy;
+                if (d2 > minD * minD && d2 < maxD * maxD) {
+                  const dist = Math.sqrt(d2);
+                  const nx = dx / dist;
+                  const ny = dy / dist;
+                  // Relative NORMAL velocity, positive = separating.
+                  const rvn = (this.vx[j] - this.vx[i]) * nx + (this.vy[j] - this.vy[i]) * ny;
+                  if (rvn <= splitEnergy) {
+                    const kernel = 1 - (dist - minD) / (maxD - minD); // 1 at contact -> 0 at reach
+                    const boost = 1 + 1.5 * Math.min(1, 0.5 * (this.pSmooth[i] + this.pSmooth[j]) / refPressure);
+                    const f = affinity * kernel * boost * dt;
+                    const wj = this.invMass[j];
+                    this.vx[i] += nx * f * wi;
+                    this.vy[i] += ny * f * wi;
+                    this.vx[j] -= nx * f * wj;
+                    this.vy[j] -= ny * f * wj;
+                  }
+                }
+              }
+              j = this.next[j];
+            }
+          }
+        }
+      }
+    }
+
     step(dt) {
       this.simulationTime += dt;
       this.updateGravity(dt);
       this.applyMouseField(dt);
+      this.applyCohesion(dt);
 
       const gravityStrength = Number(this.settings.gravityStrength);
       const gravityRadians = this.gravityAngleCurrent * Math.PI / 180;
@@ -368,12 +445,20 @@
 
       const iterations = Math.max(1, Math.round(Number(this.settings.solverIterations)));
       this.contactCount = 0;
+      this.pressure.fill(0, 0, this.count);
       for (let pass = 0; pass < iterations; pass += 1) {
         this.solveWalls();
         this.buildGrid();
         this.solveContacts(dt, pass === iterations - 1);
       }
       this.solveWalls();
+
+      // Exponential moving average turns the spiky per-substep penetration sum
+      // into a stable per-ball load signal, so pressure-driven colour doesn't
+      // strobe. New balls start at pSmooth 0 (freshly allocated), so they ease in.
+      for (let i = 0; i < this.count; i += 1) {
+        this.pSmooth[i] = this.pSmooth[i] * 0.9 + this.pressure[i] * 0.1;
+      }
 
       const invDt = 1 / dt;
       const wallBounce = Number(this.settings.wallBounce);
@@ -444,6 +529,14 @@
           distance = 0;
         }
         const penetration = minDistance - distance;
+        // Penetration-sum is the pressure proxy: deep compression in a dense pile
+        // reads as high load, which is exactly the "tighter-packed → shared colour"
+        // signal. Accumulated across every solver pass, normalised later by the
+        // pressureScale slider (the analogue of the speed mode's fixed divisor).
+        if (penetration > 0) {
+          this.pressure[i] += penetration;
+          this.pressure[j] += penetration;
+        }
         const correction = penetration / (2 + alpha);
         const dragged = this.pointer.draggedIndex;
         const wi = i === dragged ? 0 : this.invMass[i];
@@ -492,6 +585,35 @@
           this.vy[j] -= ty * tangentImpulse * wj;
         }
       });
+    }
+
+    // Laplacian smoothing of the pressure field over the current contact graph.
+    // Each pass blends every ball toward the mean of its contacting neighbours,
+    // so a tightly packed (highly connected) clump converges to one shared value
+    // while loose balls with few contacts keep their own — that is the "more
+    // shared colour the tighter it packs" behaviour. buildGrid() first so it is
+    // always safe to call, even before the first step. Returns pField to sample.
+    diffusePressure(passes = 4, blend = 0.5) {
+      const n = this.count;
+      this.buildGrid();
+      this.pField.set(this.pSmooth.subarray(0, n));
+      for (let pass = 0; pass < passes; pass += 1) {
+        this.pTmp.fill(0, 0, n);
+        this.pCount.fill(0, 0, n);
+        this.forEachContact((i, j) => {
+          this.pTmp[i] += this.pField[j];
+          this.pTmp[j] += this.pField[i];
+          this.pCount[i] += 1;
+          this.pCount[j] += 1;
+        });
+        for (let i = 0; i < n; i += 1) {
+          const c = this.pCount[i];
+          if (c > 0) {
+            this.pField[i] = this.pField[i] * (1 - blend) + (this.pTmp[i] / c) * blend;
+          }
+        }
+      }
+      return this.pField;
     }
   }
 
