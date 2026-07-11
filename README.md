@@ -12,10 +12,8 @@ A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *Fluid
 
 No install, no server, no build step — it runs entirely in your browser.
 
-<!--
-  Add a screenshot or GIF and uncomment the next line (drop the image at docs/preview.png):
-  ![FluidBalls preview](docs/preview.png)
--->
+<img width="2286" height="1328" alt="FLUIDBALLS_SCREENSHOT" src="https://github.com/user-attachments/assets/4242c436-2952-4537-98fc-6e7e58c057d9" />
+
 
 ---
 
