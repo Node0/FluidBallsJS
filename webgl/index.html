@@ -208,6 +208,32 @@
     </details>
 
     <details open>
+      <summary>Material presets</summary>
+      <div class="section-body">
+        <label class="select-row">
+          <span>Material</span>
+          <select id="materialSelect">
+            <option value="jelly">Jelly</option>
+            <option value="ocean">Ocean water</option>
+            <option value="mud">Mud</option>
+            <option value="vapor">Vapor</option>
+          </select>
+        </label>
+        <label class="toggle-row"><span>Also apply kinetics</span><input id="materialKinetics" type="checkbox" checked></label>
+        <button id="applyMaterialButton" class="wide-button">Apply material</button>
+        <label class="color-row">
+          <span>Base color</span>
+          <input data-setting="tintColor" type="color">
+        </label>
+        <label class="control-row">
+          <span>Tint strength</span>
+          <input data-setting="tintStrength" type="range" min="0" max="1" step="0.01">
+          <input data-setting="tintStrength" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+      </div>
+    </details>
+
+    <details open>
       <summary>Appearance</summary>
       <div class="section-body">
         <label class="select-row">
@@ -347,6 +373,11 @@
           <button id="savePresetButton">Save local</button>
           <button id="loadPresetButton">Load local</button>
         </div>
+        <div class="button-grid">
+          <button id="exportPresetButton">Export .json</button>
+          <button id="importPresetButton">Import .json</button>
+        </div>
+        <input type="file" id="importPresetInput" accept=".json,application/json" hidden>
         <button id="tiltPermissionButton" class="wide-button">Enable device tilt permission</button>
         <p class="hint">Drag a ball. Hold on empty space for the mouse field. Right-click always repels. Middle-click or Shift-click spawns. Mouse wheel rotates gravity.</p>
       </div>

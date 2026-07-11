@@ -58,6 +58,8 @@
     lightFalloff: 0,
     bandPosition: 0.28,
     bandWidth: 0.15,
+    tintColor: '#66d8ff',
+    tintStrength: 0,
 
     mouseMode: 'attract',
     mouseStrength: 3600,
@@ -102,6 +104,56 @@
       colorMode: 'speed', baseHue: 210, hueSpread: 155, colorSpeed: 4,
       glow: 1.35, bloomStrength: 1.7, trailPersistence: 0.78,
       backgroundColor: '#010107'
+    }
+  });
+
+  // Materials are curated bundles over the shared knobs. `shading` is always
+  // applied; `physics` only when the "also apply kinetics" checkbox is on.
+  // Values are starting points — everything stays live-tunable afterward.
+  root.MATERIALS = Object.freeze({
+    jelly: {
+      shading: {
+        renderMode: 'metaball', fusionThreshold: 0.35, edgeSoftness: 0.08, specFusion: 5,
+        translucency: 0.55, clarity: 0.75, ior: 1.4, lightFalloff: 1.5,
+        glow: 1.15, bloomStrength: 1.2, tintColor: '#3fe6a6', tintStrength: 0.6
+      },
+      physics: {
+        elasticity: 1.05, wallBounce: 0.92, airDrag: 0.08, contactViscosity: 0.05,
+        clumpAffinity: 2600, splitEnergy: 520, compliance: 0.0003, sizeMode: 'single'
+      }
+    },
+    ocean: {
+      shading: {
+        renderMode: 'metaball', fusionThreshold: 0.3, edgeSoftness: 0.1, specFusion: 8,
+        translucency: 0.72, clarity: 0.85, ior: 1.33, lightFalloff: 2.2, bandPosition: 0.14,
+        glow: 1.0, bloomStrength: 1.1, tintColor: '#2aa6ff', tintStrength: 0.55
+      },
+      physics: {
+        elasticity: 0.42, wallBounce: 0.5, airDrag: 0.2, contactViscosity: 0.35,
+        clumpAffinity: 1300, splitEnergy: 240, compliance: 0.00002, sizeMode: 'single'
+      }
+    },
+    mud: {
+      shading: {
+        renderMode: 'metaball', fusionThreshold: 0.42, edgeSoftness: 0.06, specFusion: 6,
+        translucency: 0.08, clarity: 0.2, ior: 1.3, lightFalloff: 1.0,
+        glow: 0.7, bloomStrength: 0.5, tintColor: '#6b4a2b', tintStrength: 0.85
+      },
+      physics: {
+        elasticity: 0.1, wallBounce: 0.2, airDrag: 0.5, contactViscosity: 0.7,
+        clumpAffinity: 3600, splitEnergy: 760, compliance: 0, sizeMode: 'single'
+      }
+    },
+    vapor: {
+      shading: {
+        renderMode: 'metaball', fusionThreshold: 0.22, edgeSoftness: 0.16, specFusion: 11,
+        translucency: 0.9, clarity: 0.55, ior: 1.1, lightFalloff: 0.5,
+        glow: 1.4, bloomStrength: 2.0, tintColor: '#dfe8ff', tintStrength: 0.5
+      },
+      physics: {
+        elasticity: 0.85, wallBounce: 0.85, airDrag: 0.8, contactViscosity: 0.05,
+        clumpAffinity: 0, splitEnergy: 120, sizeMode: 'mixed', radiusMin: 3, radiusMax: 9
+      }
     }
   });
 

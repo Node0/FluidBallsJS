@@ -188,11 +188,73 @@
         ui.toast('No local preset has been saved');
         return;
       }
-      applySettings(JSON.parse(raw));
+      applySettings(sanitizeSettings(JSON.parse(raw)));
       ui.toast('Local preset loaded');
     } catch (error) {
       ui.toast(`Preset load failed: ${error.message}`);
     }
+  }
+
+  // Whitelist an incoming settings object against DEFAULTS so a malformed or
+  // hostile shared file can never wedge the sim: unknown keys are dropped, types
+  // are coerced to match DEFAULTS, numbers are clamped to their control's range,
+  // and enum strings must match an actual <select> option.
+  function sanitizeSettings(raw) {
+    if (!raw || typeof raw !== 'object') return {};
+    const clean = {};
+    for (const key of Object.keys(root.DEFAULTS)) {
+      if (!(key in raw)) continue;
+      const def = root.DEFAULTS[key];
+      const value = raw[key];
+      if (typeof def === 'boolean') {
+        clean[key] = Boolean(value);
+      } else if (typeof def === 'number') {
+        const n = Number(value);
+        if (!Number.isFinite(n)) continue;
+        const input = document.querySelector(`input[type="range"][data-setting="${key}"], input[type="number"][data-setting="${key}"]`);
+        clean[key] = (input && input.min !== '' && input.max !== '')
+          ? Math.min(Number(input.max), Math.max(Number(input.min), n))
+          : n;
+      } else {
+        const str = String(value);
+        const select = document.querySelector(`select[data-setting="${key}"]`);
+        if (select) {
+          if ([...select.options].some((option) => option.value === str)) clean[key] = str;
+        } else if (/^#[0-9a-fA-F]{3,8}$/.test(str)) {
+          clean[key] = str;
+        }
+      }
+    }
+    return clean;
+  }
+
+  function exportPreset() {
+    const payload = JSON.stringify({ version: 1, app: 'fluidballs', settings }, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    downloadBlob(blob, `fluidballs-${new Date().toISOString().replace(/[:.]/g, '-')}.fluidballs.json`);
+    ui.toast('Preset exported to file');
+  }
+
+  function importPreset(file) {
+    const reader = new FileReader();
+    reader.onerror = () => ui.toast('Could not read that file');
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        const raw = parsed && typeof parsed === 'object' && parsed.settings ? parsed.settings : parsed;
+        const clean = sanitizeSettings(raw);
+        const count = Object.keys(clean).length;
+        if (!count) {
+          ui.toast('No recognizable settings in that file');
+          return;
+        }
+        applySettings(clean);
+        ui.toast(`Loaded ${count} setting${count === 1 ? '' : 's'} from file`);
+      } catch (error) {
+        ui.toast(`Import failed: ${error.message}`);
+      }
+    };
+    reader.readAsText(file);
   }
 
   function onResize() {
@@ -276,8 +338,16 @@
         simulation.reset();
         ui.toast(`Applied ${name} preset`);
       },
+      onApplyMaterial: (name, withKinetics) => {
+        const material = root.MATERIALS[name];
+        if (!material) return;
+        applySettings({ ...material.shading, ...(withKinetics ? material.physics : {}) });
+        ui.toast(`Applied ${name}${withKinetics ? ' + kinetics' : ' (look only)'}`);
+      },
       onSavePreset: savePreset,
       onLoadPreset: loadPreset,
+      onExportPreset: exportPreset,
+      onImportPreset: importPreset,
       onTiltPermission: requestTiltPermission
     });
 

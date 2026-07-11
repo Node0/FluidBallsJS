@@ -58,8 +58,19 @@
       bind('recordButton', () => this.callbacks.onRecord?.());
       bind('fullscreenButton', () => this.callbacks.onFullscreen?.());
       bind('applyPresetButton', () => this.callbacks.onApplyPreset?.(document.getElementById('presetSelect').value));
+      bind('applyMaterialButton', () => this.callbacks.onApplyMaterial?.(
+        document.getElementById('materialSelect').value,
+        document.getElementById('materialKinetics').checked
+      ));
       bind('savePresetButton', () => this.callbacks.onSavePreset?.());
       bind('loadPresetButton', () => this.callbacks.onLoadPreset?.());
+      bind('exportPresetButton', () => this.callbacks.onExportPreset?.());
+      bind('importPresetButton', () => document.getElementById('importPresetInput')?.click());
+      document.getElementById('importPresetInput')?.addEventListener('change', (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) this.callbacks.onImportPreset?.(file);
+        event.target.value = '';
+      });
       bind('tiltPermissionButton', () => this.callbacks.onTiltPermission?.());
 
       const panel = document.getElementById('panel');

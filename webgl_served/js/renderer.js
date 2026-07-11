@@ -48,6 +48,8 @@
     uniform float uClarity;
     uniform float uTranslucency; // 0 opaque .. 1 see-through (real water in metaballs)
     uniform float uLightFalloff; // how fast the light reflection dims with distance
+    uniform vec3 uTint;          // material base colour
+    uniform float uTintStrength; // 0 = dynamic hue only .. 1 = full material tint
     uniform float uBandY;
     uniform float uBandWidth;
 
@@ -110,6 +112,7 @@
       float d = length(vLocal);
       if (d > 1.72) discard;
       vec3 base = hsv2rgb(vec3(fract(vHue / 360.0), 0.82, 0.98));
+      base = mix(base, uTint, uTintStrength);
 
       if (uPass == 1) {
         float halo = exp(-max(d - 0.66, 0.0) * 3.8) * smoothstep(1.72, 0.72, d);
@@ -216,6 +219,8 @@
     in vec2 vLocal;
     in float vHue;
     uniform float uFieldRadius;
+    uniform vec3 uTint;
+    uniform float uTintStrength;
     out vec4 outColor;
     vec3 hsv2rgb(vec3 c) {
       vec3 p = abs(fract(c.xxx + vec3(0.0, 2.0/3.0, 1.0/3.0)) * 6.0 - 3.0);
@@ -227,6 +232,7 @@
       float fall = 1.0 - u * u;
       fall = fall * fall * fall;
       vec3 base = hsv2rgb(vec3(fract(vHue / 360.0), 0.82, 0.98));
+      base = mix(base, uTint, uTintStrength);
       outColor = vec4(base * fall, fall);
     }
   `;
@@ -629,6 +635,9 @@
       gl.uniform1f(gl.getUniformLocation(program, 'uClarity'), Number(s.clarity));
       gl.uniform1f(gl.getUniformLocation(program, 'uTranslucency'), Number(s.translucency));
       gl.uniform1f(gl.getUniformLocation(program, 'uLightFalloff'), Number(s.lightFalloff));
+      const tint = hexToRgb(s.tintColor);
+      gl.uniform3f(gl.getUniformLocation(program, 'uTint'), tint[0], tint[1], tint[2]);
+      gl.uniform1f(gl.getUniformLocation(program, 'uTintStrength'), Number(s.tintStrength));
       gl.uniform1f(gl.getUniformLocation(program, 'uBandY'), Number(s.bandPosition));
       gl.uniform1f(gl.getUniformLocation(program, 'uBandWidth'), Number(s.bandWidth));
     }
@@ -650,6 +659,9 @@
       gl.uniform2f(gl.getUniformLocation(this.fieldProgram, 'uResolution'), this.width, this.height);
       gl.uniform1f(gl.getUniformLocation(this.fieldProgram, 'uHaloScale'), radius);
       gl.uniform1f(gl.getUniformLocation(this.fieldProgram, 'uFieldRadius'), radius);
+      const tint = hexToRgb(this.settings.tintColor);
+      gl.uniform3f(gl.getUniformLocation(this.fieldProgram, 'uTint'), tint[0], tint[1], tint[2]);
+      gl.uniform1f(gl.getUniformLocation(this.fieldProgram, 'uTintStrength'), Number(this.settings.tintStrength));
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.ONE, gl.ONE);
       gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, count);

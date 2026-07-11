@@ -422,6 +422,32 @@
     </details>
 
     <details open>
+      <summary>Material presets</summary>
+      <div class="section-body">
+        <label class="select-row">
+          <span>Material</span>
+          <select id="materialSelect">
+            <option value="jelly">Jelly</option>
+            <option value="ocean">Ocean water</option>
+            <option value="mud">Mud</option>
+            <option value="vapor">Vapor</option>
+          </select>
+        </label>
+        <label class="toggle-row"><span>Also apply kinetics</span><input id="materialKinetics" type="checkbox" checked></label>
+        <button id="applyMaterialButton" class="wide-button">Apply material</button>
+        <label class="color-row">
+          <span>Base color</span>
+          <input data-setting="tintColor" type="color">
+        </label>
+        <label class="control-row">
+          <span>Tint strength</span>
+          <input data-setting="tintStrength" type="range" min="0" max="1" step="0.01">
+          <input data-setting="tintStrength" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+      </div>
+    </details>
+
+    <details open>
       <summary>Appearance</summary>
       <div class="section-body">
         <label class="select-row">
@@ -561,6 +587,11 @@
           <button id="savePresetButton">Save local</button>
           <button id="loadPresetButton">Load local</button>
         </div>
+        <div class="button-grid">
+          <button id="exportPresetButton">Export .json</button>
+          <button id="importPresetButton">Import .json</button>
+        </div>
+        <input type="file" id="importPresetInput" accept=".json,application/json" hidden>
         <button id="tiltPermissionButton" class="wide-button">Enable device tilt permission</button>
         <p class="hint">Drag a ball. Hold on empty space for the mouse field. Right-click always repels. Middle-click or Shift-click spawns. Mouse wheel rotates gravity.</p>
       </div>
@@ -640,6 +671,8 @@
         lightFalloff: 0,
         bandPosition: 0.28,
         bandWidth: 0.15,
+        tintColor: '#66d8ff',
+        tintStrength: 0,
 
         mouseMode: 'attract',
         mouseStrength: 3600,
@@ -684,6 +717,56 @@
           colorMode: 'speed', baseHue: 210, hueSpread: 155, colorSpeed: 4,
           glow: 1.35, bloomStrength: 1.7, trailPersistence: 0.78,
           backgroundColor: '#010107'
+        }
+      });
+
+      // Materials are curated bundles over the shared knobs. `shading` is always
+      // applied; `physics` only when the "also apply kinetics" checkbox is on.
+      // Values are starting points — everything stays live-tunable afterward.
+      root.MATERIALS = Object.freeze({
+        jelly: {
+          shading: {
+            renderMode: 'metaball', fusionThreshold: 0.35, edgeSoftness: 0.08, specFusion: 5,
+            translucency: 0.55, clarity: 0.75, ior: 1.4, lightFalloff: 1.5,
+            glow: 1.15, bloomStrength: 1.2, tintColor: '#3fe6a6', tintStrength: 0.6
+          },
+          physics: {
+            elasticity: 1.05, wallBounce: 0.92, airDrag: 0.08, contactViscosity: 0.05,
+            clumpAffinity: 2600, splitEnergy: 520, compliance: 0.0003, sizeMode: 'single'
+          }
+        },
+        ocean: {
+          shading: {
+            renderMode: 'metaball', fusionThreshold: 0.3, edgeSoftness: 0.1, specFusion: 8,
+            translucency: 0.72, clarity: 0.85, ior: 1.33, lightFalloff: 2.2, bandPosition: 0.14,
+            glow: 1.0, bloomStrength: 1.1, tintColor: '#2aa6ff', tintStrength: 0.55
+          },
+          physics: {
+            elasticity: 0.42, wallBounce: 0.5, airDrag: 0.2, contactViscosity: 0.35,
+            clumpAffinity: 1300, splitEnergy: 240, compliance: 0.00002, sizeMode: 'single'
+          }
+        },
+        mud: {
+          shading: {
+            renderMode: 'metaball', fusionThreshold: 0.42, edgeSoftness: 0.06, specFusion: 6,
+            translucency: 0.08, clarity: 0.2, ior: 1.3, lightFalloff: 1.0,
+            glow: 0.7, bloomStrength: 0.5, tintColor: '#6b4a2b', tintStrength: 0.85
+          },
+          physics: {
+            elasticity: 0.1, wallBounce: 0.2, airDrag: 0.5, contactViscosity: 0.7,
+            clumpAffinity: 3600, splitEnergy: 760, compliance: 0, sizeMode: 'single'
+          }
+        },
+        vapor: {
+          shading: {
+            renderMode: 'metaball', fusionThreshold: 0.22, edgeSoftness: 0.16, specFusion: 11,
+            translucency: 0.9, clarity: 0.55, ior: 1.1, lightFalloff: 0.5,
+            glow: 1.4, bloomStrength: 2.0, tintColor: '#dfe8ff', tintStrength: 0.5
+          },
+          physics: {
+            elasticity: 0.85, wallBounce: 0.85, airDrag: 0.8, contactViscosity: 0.05,
+            clumpAffinity: 0, splitEnergy: 120, sizeMode: 'mixed', radiusMin: 3, radiusMax: 9
+          }
         }
       });
 
@@ -1392,6 +1475,8 @@
         uniform float uClarity;
         uniform float uTranslucency; // 0 opaque .. 1 see-through (real water in metaballs)
         uniform float uLightFalloff; // how fast the light reflection dims with distance
+        uniform vec3 uTint;          // material base colour
+        uniform float uTintStrength; // 0 = dynamic hue only .. 1 = full material tint
         uniform float uBandY;
         uniform float uBandWidth;
 
@@ -1454,6 +1539,7 @@
           float d = length(vLocal);
           if (d > 1.72) discard;
           vec3 base = hsv2rgb(vec3(fract(vHue / 360.0), 0.82, 0.98));
+          base = mix(base, uTint, uTintStrength);
 
           if (uPass == 1) {
             float halo = exp(-max(d - 0.66, 0.0) * 3.8) * smoothstep(1.72, 0.72, d);
@@ -1560,6 +1646,8 @@
         in vec2 vLocal;
         in float vHue;
         uniform float uFieldRadius;
+        uniform vec3 uTint;
+        uniform float uTintStrength;
         out vec4 outColor;
         vec3 hsv2rgb(vec3 c) {
           vec3 p = abs(fract(c.xxx + vec3(0.0, 2.0/3.0, 1.0/3.0)) * 6.0 - 3.0);
@@ -1571,6 +1659,7 @@
           float fall = 1.0 - u * u;
           fall = fall * fall * fall;
           vec3 base = hsv2rgb(vec3(fract(vHue / 360.0), 0.82, 0.98));
+          base = mix(base, uTint, uTintStrength);
           outColor = vec4(base * fall, fall);
         }
       `;
@@ -1973,6 +2062,9 @@
           gl.uniform1f(gl.getUniformLocation(program, 'uClarity'), Number(s.clarity));
           gl.uniform1f(gl.getUniformLocation(program, 'uTranslucency'), Number(s.translucency));
           gl.uniform1f(gl.getUniformLocation(program, 'uLightFalloff'), Number(s.lightFalloff));
+          const tint = hexToRgb(s.tintColor);
+          gl.uniform3f(gl.getUniformLocation(program, 'uTint'), tint[0], tint[1], tint[2]);
+          gl.uniform1f(gl.getUniformLocation(program, 'uTintStrength'), Number(s.tintStrength));
           gl.uniform1f(gl.getUniformLocation(program, 'uBandY'), Number(s.bandPosition));
           gl.uniform1f(gl.getUniformLocation(program, 'uBandWidth'), Number(s.bandWidth));
         }
@@ -1994,6 +2086,9 @@
           gl.uniform2f(gl.getUniformLocation(this.fieldProgram, 'uResolution'), this.width, this.height);
           gl.uniform1f(gl.getUniformLocation(this.fieldProgram, 'uHaloScale'), radius);
           gl.uniform1f(gl.getUniformLocation(this.fieldProgram, 'uFieldRadius'), radius);
+          const tint = hexToRgb(this.settings.tintColor);
+          gl.uniform3f(gl.getUniformLocation(this.fieldProgram, 'uTint'), tint[0], tint[1], tint[2]);
+          gl.uniform1f(gl.getUniformLocation(this.fieldProgram, 'uTintStrength'), Number(this.settings.tintStrength));
           gl.enable(gl.BLEND);
           gl.blendFunc(gl.ONE, gl.ONE);
           gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, count);
@@ -2177,8 +2272,19 @@
           bind('recordButton', () => this.callbacks.onRecord?.());
           bind('fullscreenButton', () => this.callbacks.onFullscreen?.());
           bind('applyPresetButton', () => this.callbacks.onApplyPreset?.(document.getElementById('presetSelect').value));
+          bind('applyMaterialButton', () => this.callbacks.onApplyMaterial?.(
+            document.getElementById('materialSelect').value,
+            document.getElementById('materialKinetics').checked
+          ));
           bind('savePresetButton', () => this.callbacks.onSavePreset?.());
           bind('loadPresetButton', () => this.callbacks.onLoadPreset?.());
+          bind('exportPresetButton', () => this.callbacks.onExportPreset?.());
+          bind('importPresetButton', () => document.getElementById('importPresetInput')?.click());
+          document.getElementById('importPresetInput')?.addEventListener('change', (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (file) this.callbacks.onImportPreset?.(file);
+            event.target.value = '';
+          });
           bind('tiltPermissionButton', () => this.callbacks.onTiltPermission?.());
 
           const panel = document.getElementById('panel');
@@ -2451,11 +2557,73 @@
             ui.toast('No local preset has been saved');
             return;
           }
-          applySettings(JSON.parse(raw));
+          applySettings(sanitizeSettings(JSON.parse(raw)));
           ui.toast('Local preset loaded');
         } catch (error) {
           ui.toast(`Preset load failed: ${error.message}`);
         }
+      }
+
+      // Whitelist an incoming settings object against DEFAULTS so a malformed or
+      // hostile shared file can never wedge the sim: unknown keys are dropped, types
+      // are coerced to match DEFAULTS, numbers are clamped to their control's range,
+      // and enum strings must match an actual <select> option.
+      function sanitizeSettings(raw) {
+        if (!raw || typeof raw !== 'object') return {};
+        const clean = {};
+        for (const key of Object.keys(root.DEFAULTS)) {
+          if (!(key in raw)) continue;
+          const def = root.DEFAULTS[key];
+          const value = raw[key];
+          if (typeof def === 'boolean') {
+            clean[key] = Boolean(value);
+          } else if (typeof def === 'number') {
+            const n = Number(value);
+            if (!Number.isFinite(n)) continue;
+            const input = document.querySelector(`input[type="range"][data-setting="${key}"], input[type="number"][data-setting="${key}"]`);
+            clean[key] = (input && input.min !== '' && input.max !== '')
+              ? Math.min(Number(input.max), Math.max(Number(input.min), n))
+              : n;
+          } else {
+            const str = String(value);
+            const select = document.querySelector(`select[data-setting="${key}"]`);
+            if (select) {
+              if ([...select.options].some((option) => option.value === str)) clean[key] = str;
+            } else if (/^#[0-9a-fA-F]{3,8}$/.test(str)) {
+              clean[key] = str;
+            }
+          }
+        }
+        return clean;
+      }
+
+      function exportPreset() {
+        const payload = JSON.stringify({ version: 1, app: 'fluidballs', settings }, null, 2);
+        const blob = new Blob([payload], { type: 'application/json' });
+        downloadBlob(blob, `fluidballs-${new Date().toISOString().replace(/[:.]/g, '-')}.fluidballs.json`);
+        ui.toast('Preset exported to file');
+      }
+
+      function importPreset(file) {
+        const reader = new FileReader();
+        reader.onerror = () => ui.toast('Could not read that file');
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result));
+            const raw = parsed && typeof parsed === 'object' && parsed.settings ? parsed.settings : parsed;
+            const clean = sanitizeSettings(raw);
+            const count = Object.keys(clean).length;
+            if (!count) {
+              ui.toast('No recognizable settings in that file');
+              return;
+            }
+            applySettings(clean);
+            ui.toast(`Loaded ${count} setting${count === 1 ? '' : 's'} from file`);
+          } catch (error) {
+            ui.toast(`Import failed: ${error.message}`);
+          }
+        };
+        reader.readAsText(file);
       }
 
       function onResize() {
@@ -2539,8 +2707,16 @@
             simulation.reset();
             ui.toast(`Applied ${name} preset`);
           },
+          onApplyMaterial: (name, withKinetics) => {
+            const material = root.MATERIALS[name];
+            if (!material) return;
+            applySettings({ ...material.shading, ...(withKinetics ? material.physics : {}) });
+            ui.toast(`Applied ${name}${withKinetics ? ' + kinetics' : ' (look only)'}`);
+          },
           onSavePreset: savePreset,
           onLoadPreset: loadPreset,
+          onExportPreset: exportPreset,
+          onImportPreset: importPreset,
           onTiltPermission: requestTiltPermission
         });
 
