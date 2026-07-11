@@ -10,7 +10,8 @@ A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *Fluid
 
 ### ▶ [**Launch the live simulation →**](https://node0.github.io/FluidBallsJS/)
 
-No install, no server, no build step — it runs entirely in your browser.
+No install, no server, no build step, it runs entirely in your browser.  
+<br/>
 **Check out the `presets` folder in this repository, downlaod the json files,  
 then in FluidBallsJS scroll all the way to "Interaction & Tools" -> Import .json**
 `pressure_networks_like_synaptic_cascades.fluidballs.json` is mesmermizing,  
