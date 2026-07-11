@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>FluidBalls WebGL</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="fluidCanvas" aria-label="FluidBalls WebGL simulation"></canvas>
+
+  <aside id="panel" class="panel" aria-label="FluidBalls controls">
+    <header class="panel__header">
+      <div>
+        <h1>FluidBalls <span>WebGL</span></h1>
+        <p>GPU-rendered liquid marbles, live-tunable physics.</p>
+      </div>
+      <button id="collapsePanel" class="icon-button" title="Collapse panel" aria-label="Collapse panel">×</button>
+    </header>
+
+    <div class="toolbar">
+      <button id="pauseButton">Pause</button>
+      <button id="stepButton" title="Advance one fixed physics step">Step</button>
+      <button id="shakeButton">Shake</button>
+      <button id="resetButton">Reset</button>
+    </div>
+
+    <details open>
+      <summary>Simulation</summary>
+      <div class="section-body">
+        <label class="control-row">
+          <span>Ball count</span>
+          <input data-setting="ballCount" type="range" min="20" max="5000" step="10">
+          <input data-setting="ballCount" class="number" type="number" min="20" max="5000" step="10">
+        </label>
+        <label class="select-row">
+          <span>Ball sizes</span>
+          <select data-setting="sizeMode">
+            <option value="single">Single size (crystalline)</option>
+            <option value="mixed">Mixed sizes</option>
+          </select>
+        </label>
+        <label class="control-row" data-size-mode="single">
+          <span>Radius</span>
+          <input data-setting="radius" type="range" min="2" max="30" step="0.5">
+          <input data-setting="radius" class="number" type="number" min="2" max="30" step="0.5">
+        </label>
+        <label class="control-row" data-size-mode="mixed">
+          <span>Min radius</span>
+          <input data-setting="radiusMin" type="range" min="2" max="30" step="0.5">
+          <input data-setting="radiusMin" class="number" type="number" min="2" max="30" step="0.5">
+        </label>
+        <label class="control-row" data-size-mode="mixed">
+          <span>Max radius</span>
+          <input data-setting="radiusMax" type="range" min="2" max="30" step="0.5">
+          <input data-setting="radiusMax" class="number" type="number" min="2" max="30" step="0.5">
+        </label>
+        <label class="control-row">
+          <span>Solver passes</span>
+          <input data-setting="solverIterations" type="range" min="1" max="8" step="1">
+          <input data-setting="solverIterations" class="number" type="number" min="1" max="8" step="1">
+        </label>
+        <label class="control-row">
+          <span>Physics Hz</span>
+          <input data-setting="physicsHz" type="range" min="60" max="240" step="30">
+          <input data-setting="physicsHz" class="number" type="number" min="60" max="240" step="30">
+        </label>
+        <label class="control-row">
+          <span>Constraint softness</span>
+          <input data-setting="compliance" type="range" min="0" max="0.001" step="0.00001">
+          <input data-setting="compliance" class="number" type="number" min="0" max="0.001" step="0.00001">
+        </label>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Forces</summary>
+      <div class="section-body">
+        <label class="select-row">
+          <span>Gravity mode</span>
+          <select data-setting="gravityMode">
+            <option value="manual">Manual</option>
+            <option value="cardinal">Cardinal cycle</option>
+            <option value="wander">Random wander</option>
+            <option value="rotate">Continuous rotate</option>
+            <option value="tilt">Device tilt</option>
+          </select>
+        </label>
+        <label class="control-row">
+          <span>Gravity</span>
+          <input data-setting="gravityStrength" type="range" min="0" max="2400" step="10">
+          <input data-setting="gravityStrength" class="number" type="number" min="0" max="2400" step="10">
+        </label>
+        <label class="control-row">
+          <span>Direction °</span>
+          <input data-setting="gravityAngle" type="range" min="0" max="359" step="1">
+          <input data-setting="gravityAngle" class="number" type="number" min="0" max="359" step="1">
+        </label>
+        <label class="control-row">
+          <span>Cycle time s</span>
+          <input data-setting="gravityCycleTime" type="range" min="0.5" max="30" step="0.1">
+          <input data-setting="gravityCycleTime" class="number" type="number" min="0.5" max="30" step="0.1">
+        </label>
+        <label class="control-row">
+          <span>Transition s</span>
+          <input data-setting="gravityTransitionTime" type="range" min="0.05" max="5" step="0.05">
+          <input data-setting="gravityTransitionTime" class="number" type="number" min="0.05" max="5" step="0.05">
+        </label>
+        <label class="control-row">
+          <span>Wind</span>
+          <input data-setting="windStrength" type="range" min="0" max="1600" step="10">
+          <input data-setting="windStrength" class="number" type="number" min="0" max="1600" step="10">
+        </label>
+        <label class="control-row">
+          <span>Wind direction °</span>
+          <input data-setting="windAngle" type="range" min="0" max="359" step="1">
+          <input data-setting="windAngle" class="number" type="number" min="0" max="359" step="1">
+        </label>
+        <label class="control-row">
+          <span>Wind turbulence</span>
+          <input data-setting="windTurbulence" type="range" min="0" max="1" step="0.01">
+          <input data-setting="windTurbulence" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Material</summary>
+      <div class="section-body">
+        <label class="control-row">
+          <span>Ball bounce</span>
+          <input data-setting="elasticity" type="range" min="0" max="1.2" step="0.01">
+          <input data-setting="elasticity" class="number" type="number" min="0" max="1.2" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Wall bounce</span>
+          <input data-setting="wallBounce" type="range" min="0" max="1.2" step="0.01">
+          <input data-setting="wallBounce" class="number" type="number" min="0" max="1.2" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Air drag</span>
+          <input data-setting="airDrag" type="range" min="0" max="4" step="0.01">
+          <input data-setting="airDrag" class="number" type="number" min="0" max="4" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Contact viscosity</span>
+          <input data-setting="contactViscosity" type="range" min="0" max="1" step="0.01">
+          <input data-setting="contactViscosity" class="number" type="number" min="0" max="1" step="0.01">
+        </label>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Appearance</summary>
+      <div class="section-body">
+        <label class="select-row">
+          <span>Color mode</span>
+          <select data-setting="colorMode">
+            <option value="cycle">Color cycle</option>
+            <option value="speed">Velocity heat</option>
+            <option value="direction">Direction map</option>
+            <option value="mono">Single hue</option>
+          </select>
+        </label>
+        <label class="control-row">
+          <span>Base hue</span>
+          <input data-setting="baseHue" type="range" min="0" max="359" step="1">
+          <input data-setting="baseHue" class="number" type="number" min="0" max="359" step="1">
+        </label>
+        <label class="control-row">
+          <span>Hue spread</span>
+          <input data-setting="hueSpread" type="range" min="0" max="360" step="1">
+          <input data-setting="hueSpread" class="number" type="number" min="0" max="360" step="1">
+        </label>
+        <label class="control-row">
+          <span>Cycle speed °/s</span>
+          <input data-setting="colorSpeed" type="range" min="-120" max="120" step="1">
+          <input data-setting="colorSpeed" class="number" type="number" min="-120" max="120" step="1">
+        </label>
+        <label class="control-row">
+          <span>Glow</span>
+          <input data-setting="glow" type="range" min="0" max="3" step="0.01">
+          <input data-setting="glow" class="number" type="number" min="0" max="3" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Bloom</span>
+          <input data-setting="bloomStrength" type="range" min="0" max="4" step="0.01">
+          <input data-setting="bloomStrength" class="number" type="number" min="0" max="4" step="0.01">
+        </label>
+        <label class="control-row">
+          <span>Trail persistence</span>
+          <input data-setting="trailPersistence" type="range" min="0" max="0.985" step="0.005">
+          <input data-setting="trailPersistence" class="number" type="number" min="0" max="0.985" step="0.005">
+        </label>
+        <label class="control-row">
+          <span>Exposure</span>
+          <input data-setting="exposure" type="range" min="0.2" max="3" step="0.01">
+          <input data-setting="exposure" class="number" type="number" min="0.2" max="3" step="0.01">
+        </label>
+        <label class="color-row">
+          <span>Background</span>
+          <input data-setting="backgroundColor" type="color">
+        </label>
+        <label class="toggle-row"><span>Bloom blur</span><input data-setting="bloomEnabled" type="checkbox"></label>
+        <label class="toggle-row"><span>Vignette</span><input data-setting="vignette" type="checkbox"></label>
+      </div>
+    </details>
+
+    <details>
+      <summary>Interaction & tools</summary>
+      <div class="section-body">
+        <label class="select-row">
+          <span>Mouse field</span>
+          <select data-setting="mouseMode">
+            <option value="attract">Attract</option>
+            <option value="repel">Repel</option>
+            <option value="vortex">Vortex</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
+        <label class="control-row">
+          <span>Mouse strength</span>
+          <input data-setting="mouseStrength" type="range" min="0" max="10000" step="100">
+          <input data-setting="mouseStrength" class="number" type="number" min="0" max="10000" step="100">
+        </label>
+        <label class="control-row">
+          <span>Mouse radius</span>
+          <input data-setting="mouseRadius" type="range" min="30" max="600" step="5">
+          <input data-setting="mouseRadius" class="number" type="number" min="30" max="600" step="5">
+        </label>
+        <div class="button-grid">
+          <button id="randomizeButton">Randomize velocity</button>
+          <button id="zeroVelocityButton">Zero velocity</button>
+          <button id="reseedColorButton">Reseed colors</button>
+          <button id="clearTrailsButton">Clear trails</button>
+          <button id="spawnButton">Spawn burst</button>
+          <button id="screenshotButton">Screenshot</button>
+          <button id="recordButton">Record WebM</button>
+          <button id="fullscreenButton">Fullscreen</button>
+        </div>
+        <label class="select-row">
+          <span>Preset</span>
+          <select id="presetSelect">
+            <option value="classic">Classic blue</option>
+            <option value="mercury">Mercury</option>
+            <option value="lava">Lava lamp</option>
+            <option value="orbit">Zero-G orbit</option>
+            <option value="storm">Storm box</option>
+          </select>
+        </label>
+        <div class="button-grid button-grid--three">
+          <button id="applyPresetButton">Apply</button>
+          <button id="savePresetButton">Save local</button>
+          <button id="loadPresetButton">Load local</button>
+        </div>
+        <button id="tiltPermissionButton" class="wide-button">Enable device tilt permission</button>
+        <p class="hint">Drag a ball. Hold on empty space for the mouse field. Right-click always repels. Middle-click or Shift-click spawns. Mouse wheel rotates gravity.</p>
+      </div>
+    </details>
+
+    <footer class="stats" aria-live="polite">
+      <span><strong id="fpsValue">0</strong> FPS</span>
+      <span><strong id="frameValue">0.0</strong> ms</span>
+      <span><strong id="collisionValue">0</strong> contacts</span>
+      <span><strong id="ballValue">0</strong> balls</span>
+      <span id="gpuValue">WebGL2</span>
+    </footer>
+  </aside>
+
+  <button id="openPanel" class="open-panel" hidden>Controls</button>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="fatalError" class="fatal-error" hidden></div>
+
+  <script defer src="js/config.js"></script>
+  <script defer src="js/physics.js"></script>
+  <script defer src="js/renderer.js"></script>
+  <script defer src="js/ui.js"></script>
+  <script defer src="js/main.js"></script>
+</body>
+</html>
