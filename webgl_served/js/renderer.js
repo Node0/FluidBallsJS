@@ -472,12 +472,39 @@
       return { texture, framebuffer, width, height };
     }
 
+    // Multisampled colour renderbuffer for the lit-sphere pass; resolved into the
+    // scene texture with blitFramebuffer. Returns null if this GPU can't do MSAA at
+    // the chosen format (float MSAA is the shaky case), so the caller falls back to
+    // direct rendering. Tries 4x then 2x samples.
+    createMultisampleTarget(width, height) {
+      const gl = this.gl;
+      const format = this.floatTargets ? gl.RGBA16F : gl.RGBA8;
+      const maxSamples = gl.getParameter(gl.MAX_SAMPLES);
+      for (const want of [4, 2]) {
+        const samples = Math.min(want, maxSamples);
+        if (samples < 2) break;
+        const renderbuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, format, width, height);
+        const framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
+        const complete = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        if (complete) return { framebuffer, renderbuffer, width, height, samples };
+        gl.deleteRenderbuffer(renderbuffer);
+        gl.deleteFramebuffer(framebuffer);
+      }
+      return null;
+    }
+
     destroyTargets() {
       if (!this.targets) return;
       const gl = this.gl;
       Object.values(this.targets).flatMap((value) => Array.isArray(value) ? value : [value]).forEach((target) => {
         if (!target) return;
-        gl.deleteTexture(target.texture);
+        if (target.texture) gl.deleteTexture(target.texture);
+        if (target.renderbuffer) gl.deleteRenderbuffer(target.renderbuffer);
         gl.deleteFramebuffer(target.framebuffer);
       });
       this.targets = null;
@@ -500,6 +527,7 @@
       const fieldHeight = Math.max(1, Math.floor(displayHeight / FIELD_DIV));
       this.targets = {
         scene: this.createTarget(displayWidth, displayHeight),
+        sceneMs: this.createMultisampleTarget(displayWidth, displayHeight),
         field: this.createTarget(fieldWidth, fieldHeight, true),
         history: [this.createTarget(displayWidth, displayHeight), this.createTarget(displayWidth, displayHeight)],
         bloom: [this.createTarget(bloomWidth, bloomHeight), this.createTarget(bloomWidth, bloomHeight)]
@@ -722,6 +750,17 @@
           gl.generateMipmap(gl.TEXTURE_2D);
         }
         this.drawSurface();
+      } else if (this.settings.msaa && this.targets.sceneMs) {
+        // Lit spheres into the multisampled buffer, then blit-resolve into the
+        // scene texture the rest of the pipeline reads. Only sphere mode needs
+        // this — the metaball iso edge is already smoothstep-antialiased.
+        const ms = this.targets.sceneMs;
+        this.clearTarget(ms);
+        this.drawBalls(ms, simulation.count, 0);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, ms.framebuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.targets.scene.framebuffer);
+        gl.blitFramebuffer(0, 0, ms.width, ms.height, 0, 0, this.targets.scene.width, this.targets.scene.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       } else {
         this.drawBalls(this.targets.scene, simulation.count, 0);
       }

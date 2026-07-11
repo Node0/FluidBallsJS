@@ -48,6 +48,7 @@
     backgroundColor: '#02050b',
     bloomEnabled: true,
     vignette: true,
+    msaa: true,
 
     lightAngle: 229,
     lightWidth: 0.16,
