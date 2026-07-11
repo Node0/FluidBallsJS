@@ -2,13 +2,13 @@
 
 A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *FluidBalls* — thousands of soft-body marbles sloshing, packing, and fusing in real time, with every physics and lighting knob live-tunable from an in-browser control panel.
 
-[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Launch_it-62d8ff?style=for-the-badge)](https://node0.github.io/fluidballsjs/)
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Launch_it-62d8ff?style=for-the-badge)](https://node0.github.io/FluidBallsJS/)
 &nbsp;
 ![WebGL2](https://img.shields.io/badge/WebGL-2-9b7cff?style=flat-square)
 ![No dependencies](https://img.shields.io/badge/dependencies-none-3fe6a6?style=flat-square)
 ![Single file](https://img.shields.io/badge/runs-from_a_single_HTML_file-f5f8ff?style=flat-square)
 
-### ▶ [**Launch the live simulation →**](https://node0.github.io/fluidballsjs/)
+### ▶ [**Launch the live simulation →**](https://node0.github.io/FluidBallsJS/)
 
 No install, no server, no build step — it runs entirely in your browser.
 
