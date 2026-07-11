@@ -69,9 +69,11 @@
 
   root.PRESETS = Object.freeze({
     // Flagship showcase preset (full settings) — also the startup default (main.js).
-    // Ball count / solver passes / physics Hz tuned down for broad hardware (iPad).
+    // Ball count / solver passes tuned down for broad hardware (iPad). physicsHz 90
+    // is the FLOOR where the emergent "synaptic" pressure patterns crackle to life
+    // reliably — at 60 they only flicker intermittently. Do not lower it.
     synaptic: {
-      ballCount: 2500, sizeMode: 'mixed', radius: 11.5, radiusMin: 4, radiusMax: 8, solverIterations: 2, physicsHz: 60, compliance: 0,
+      ballCount: 2500, sizeMode: 'mixed', radius: 11.5, radiusMin: 4, radiusMax: 8, solverIterations: 2, physicsHz: 90, compliance: 0,
       gravityMode: 'cardinal', gravityStrength: 30, gravityAngle: 21, gravityCycleTime: 6.1, gravityTransitionTime: 1.2,
       windStrength: 10, windAngle: 45, windTurbulence: 0.16,
       elasticity: 1.14, wallBounce: 1.15, airDrag: 0.06, contactViscosity: 0.49, clumpAffinity: 890, splitEnergy: 300,
