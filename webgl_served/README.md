@@ -1,4 +1,4 @@
-# FluidBalls WebGL
+# FluidBallsJS v1.0 WebGL
 
 A self-contained, modern browser interpretation of the classic XScreenSaver FluidBalls idea.
 
@@ -85,28 +85,3 @@ origin. Bundling removes cross-file requests, but it does not give the document
 a normal web origin. For consistent WebGL, storage, fullscreen, recording, and
 download behavior, run FluidBalls on the loopback interface.
 
-### macOS double-click launcher
-
-Double-click `FluidBalls.command`. A Terminal window starts a loopback-only
-server and opens FluidBalls in the default browser. Close it with Control-C.
-
-If macOS blocks the downloaded command because of quarantine, right-click it,
-choose **Open**, then confirm once. Alternatively run the Python command below.
-
-### Terminal launcher
-
-```bash
-cd fluidballs-webgl
-python3 serve.py
-```
-
-The script binds only to `127.0.0.1`, chooses an available port automatically,
-and opens `index.html`. No package installation is required.
-
-Useful options:
-
-```bash
-python3 serve.py --no-browser
-python3 serve.py --port 8080
-python3 serve.py --page fluidballs-webgl-single.html
-```
