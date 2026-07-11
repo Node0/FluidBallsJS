@@ -2,7 +2,9 @@
   'use strict';
 
   const root = window.FluidBalls;
-  const settings = { ...root.DEFAULTS };
+  // Boot into the "Synaptic Cascades" showcase preset (falls back to plain
+  // defaults if it is ever removed). The preset dropdown lists it too.
+  const settings = { ...root.DEFAULTS, ...(root.PRESETS.synaptic || {}) };
   const canvas = document.getElementById('fluidCanvas');
   const fatalError = document.getElementById('fatalError');
 
