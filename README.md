@@ -8,7 +8,7 @@ A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *Fluid
 ![No dependencies](https://img.shields.io/badge/dependencies-none-3fe6a6?style=flat-square)
 ![Single file](https://img.shields.io/badge/runs-from_a_single_HTML_file-f5f8ff?style=flat-square)
 
-### ▶ [**Launch the live simulation →**](https://node0.github.io/fluidballsjs/)
+### ▶ [**Launch the live simulation →**](https://node0.github.io/FluidBallsJS/)
 
 No install, no server, no build step — it runs entirely in your browser.
 
