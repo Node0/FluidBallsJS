@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>FluidBallsJS v1.0 WebGL</title>
+    <title>FluidBallsJS v1.0 WebGL</title>
   <style data-inlined-from="style.css">
     /* Any rule that sets `display` outranks the UA's [hidden] { display: none },
        so the attribute silently stops working. Guard it once, globally. */
@@ -576,6 +576,8 @@
         <label class="select-row">
           <span>Preset</span>
           <select id="presetSelect">
+            <option value="synaptic">Synaptic Cascades</option>
+            <option value="oceanTail">Ocean Chasing Its Tail</option>
             <option value="classic">Classic blue</option>
             <option value="mercury">Mercury</option>
             <option value="lava">Lava lamp</option>
@@ -682,6 +684,37 @@
       });
 
       root.PRESETS = Object.freeze({
+        // Flagship showcase preset (full settings) — also the startup default (main.js).
+        // Ball count / solver passes tuned down for broad hardware (iPad). physicsHz 90
+        // is the FLOOR where the emergent "synaptic" pressure patterns crackle to life
+        // reliably — at 60 they only flicker intermittently. Do not lower it.
+        synaptic: {
+          ballCount: 2500, sizeMode: 'mixed', radius: 11.5, radiusMin: 4, radiusMax: 8, solverIterations: 2, physicsHz: 90, compliance: 0,
+          gravityMode: 'cardinal', gravityStrength: 30, gravityAngle: 21, gravityCycleTime: 6.1, gravityTransitionTime: 1.2,
+          windStrength: 10, windAngle: 45, windTurbulence: 0.16,
+          elasticity: 1.14, wallBounce: 1.15, airDrag: 0.06, contactViscosity: 0.49, clumpAffinity: 890, splitEnergy: 300,
+          renderMode: 'sphere', fusionThreshold: 0.1, edgeSoftness: 0.12, fieldRadius: 2.45, specFusion: 12,
+          colorMode: 'pressure', baseHue: 272, hueSpread: 298, colorSpeed: 1, pressureScale: 0.8, pressureDiffuse: false,
+          glow: 0.06, bloomStrength: 0.14, trailPersistence: 0.085, exposure: 2.58, backgroundColor: '#02050b', bloomEnabled: false, vignette: false, msaa: true,
+          lightAngle: 224, lightWidth: 0.97, lightSoftness: 0.73, ior: 1.93, clarity: 0.85, translucency: 0.91, lightFalloff: 6, bandPosition: 0, bandWidth: 0.15,
+          tintColor: '#2aa6ff', tintStrength: 0,
+          mouseMode: 'vortex', mouseStrength: 4500, mouseRadius: 500,
+        },
+        // Second showcase preset (full settings). Slow rotating gravity drags the
+        // metaball sheet around after itself, so the body of "water" perpetually
+        // chases its own wake. Heavier than synaptic — 3500 balls, 5 solver passes.
+        oceanTail: {
+          ballCount: 3500, sizeMode: 'mixed', radius: 11.5, radiusMin: 3, radiusMax: 4, solverIterations: 5, physicsHz: 60, compliance: 0.00052,
+          gravityMode: 'rotate', gravityStrength: 340, gravityAngle: 26, gravityCycleTime: 16, gravityTransitionTime: 5,
+          windStrength: 10, windAngle: 45, windTurbulence: 0.16,
+          elasticity: 1.2, wallBounce: 1.2, airDrag: 0.11, contactViscosity: 0.3, clumpAffinity: 850, splitEnergy: 200,
+          renderMode: 'metaball', fusionThreshold: 0.9, edgeSoftness: 0.005, fieldRadius: 2.5, specFusion: 10.5,
+          colorMode: 'mono', baseHue: 216, hueSpread: 273, colorSpeed: 0, pressureScale: 0.8, pressureDiffuse: false,
+          glow: 0, bloomStrength: 1.12, trailPersistence: 0.145, exposure: 3, backgroundColor: '#02050b', bloomEnabled: true, vignette: false, msaa: true,
+          lightAngle: 27, lightWidth: 0.87, lightSoftness: 0, ior: 1, clarity: 0, translucency: 1, lightFalloff: 6, bandPosition: 0.52, bandWidth: 0.15,
+          tintColor: '#2aa6ff', tintStrength: 0,
+          mouseMode: 'attract', mouseStrength: 4500, mouseRadius: 500,
+        },
         classic: {
           gravityMode: 'cardinal', gravityStrength: 780, gravityCycleTime: 5,
           elasticity: 0.84, wallBounce: 0.88, airDrag: 0.18,
@@ -2312,7 +2345,10 @@
           bind('screenshotButton', () => this.callbacks.onScreenshot?.());
           bind('recordButton', () => this.callbacks.onRecord?.());
           bind('fullscreenButton', () => this.callbacks.onFullscreen?.());
-          bind('applyPresetButton', () => this.callbacks.onApplyPreset?.(document.getElementById('presetSelect').value));
+          bind('applyPresetButton', () => {
+            const select = document.getElementById('presetSelect');
+            this.callbacks.onApplyPreset?.(select.value, select.selectedOptions[0]?.textContent ?? select.value);
+          });
           bind('applyMaterialButton', () => this.callbacks.onApplyMaterial?.(
             document.getElementById('materialSelect').value,
             document.getElementById('materialKinetics').checked
@@ -2412,7 +2448,9 @@
       'use strict';
 
       const root = window.FluidBalls;
-      const settings = { ...root.DEFAULTS };
+      // Boot into the "Synaptic Cascades" showcase preset (falls back to plain
+      // defaults if it is ever removed). The preset dropdown lists it too.
+      const settings = { ...root.DEFAULTS, ...(root.PRESETS.synaptic || {}) };
       const canvas = document.getElementById('fluidCanvas');
       const fatalError = document.getElementById('fatalError');
 
@@ -2743,10 +2781,10 @@
           onScreenshot: takeScreenshot,
           onRecord: toggleRecording,
           onFullscreen: toggleFullscreen,
-          onApplyPreset: (name) => {
+          onApplyPreset: (name, label) => {
             applySettings(root.PRESETS[name]);
             simulation.reset();
-            ui.toast(`Applied ${name} preset`);
+            ui.toast(`Applied ${label || name} preset`);
           },
           onApplyMaterial: (name, withKinetics) => {
             const material = root.MATERIALS[name];

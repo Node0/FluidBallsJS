@@ -12,6 +12,12 @@ A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *Fluid
 
 No install, no server, no build step, it runs entirely in your browser.  
 <br/>
+**The two showcase presets are built in — no download needed.** Scroll to "Interaction & Tools" -> Preset,  
+pick one, and hit Apply. **Synaptic Cascades** (the mode it boots into) is mesmerizing, and  
+**Ocean Chasing Its Tail** is fun to watch too. Did I mention you can record videos 🎥 ?
+
+Every other preset in the `presets` folder can be downloaded and loaded the same way  
+via "Interaction & Tools" -> Import .json.
 **Check out the `presets` folder in this repository, downlaod the json files,  
 then in FluidBallsJS scroll all the way to "Interaction & Tools" -> Import .json**
 `pressure_networks_like_synaptic_cascades.fluidballs.json` is mesmermizing,  
