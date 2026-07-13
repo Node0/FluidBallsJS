@@ -1,6 +1,6 @@
 # FluidBallsJS v1.0 <sub>WebGL</sub>
 
-A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *FluidBalls* — thousands of soft-body marbles sloshing, packing, and fusing in real time, with every physics and lighting knob live-tunable from an in-browser control panel.
+A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *FluidBalls*, thousands of soft-body marbles sloshing, packing, and fusing in real time, with every physics and lighting knob live-tunable from an in-browser control panel.
 
 [![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Launch_it-62d8ff?style=for-the-badge)](https://node0.github.io/FluidBallsJS/)
 &nbsp;
@@ -12,16 +12,19 @@ A self-contained, GPU-accelerated reimagining of the classic XScreenSaver *Fluid
 
 No install, no server, no build step, it runs entirely in your browser.  
 <br/>
-**The two showcase presets are built in — no download needed.** Scroll to "Interaction & Tools" -> Preset,  
-pick one, and hit Apply. **Synaptic Cascades** (the mode it boots into) is mesmerizing, and  
-**Ocean Chasing Its Tail** is fun to watch too. Did I mention you can record videos 🎥 ?
+**The two showcase presets are built in, no download needed**: 
+
+1. Scroll to **"Interaction & Tools"** -> Preset
+2. Pick one, and hit Apply
+    **Synaptic Cascades** (the mode it boots into) is mesmerizing
+    **Ocean Chasing Its Tail** is fun to watch too.
+    
+Did I mention you can record videos 🎥 ?  
+Scroll to **"Interaction & Tools"** and click the **"Record Webm"** button
 
 Every other preset in the `presets` folder can be downloaded and loaded the same way  
-via "Interaction & Tools" -> Import .json.
-**Check out the `presets` folder in this repository, downlaod the json files,  
-then in FluidBallsJS scroll all the way to "Interaction & Tools" -> Import .json**
-`pressure_networks_like_synaptic_cascades.fluidballs.json` is mesmermizing,  
-and `ocean_wave_chasing_its_own_tail.fluidballs.json` is fun to watch too. Did I mention you can record videos 🎥 ? 
+via **"Interaction & Tools"** -> **"Import .json"**  
+
 
 <img width="2286" height="1328" alt="FLUIDBALLS_SCREENSHOT" src="https://github.com/user-attachments/assets/4242c436-2952-4537-98fc-6e7e58c057d9" />
 
@@ -34,17 +37,17 @@ FluidBalls is a positional-based-dynamics (PBD) particle sandbox rendered with W
 
 ## Features
 
-- **WebGL 2 instanced rendering** — up to 5,000 balls, mixed or single-size, mass-aware collisions.
-- **Two render modes** — lit spheres, or a **metaball fluid** surface that fuses touching balls into a single thresholded iso-surface.
-- **Physical lighting** — Fresnel/rim from an adjustable index of refraction, specular strip highlight, clarity, translucency, and a distance-based light falloff, all shared between the sphere and metaball passes.
-- **Pressure-field coloring** — a per-ball load signal (penetration-sum EMA) drives hue and brightness, so tightly packed piles read hot; optional contact-graph diffusion makes dense clumps share one color.
-- **Post-processing** — GPU bloom with separable Gaussian blur, HDR render targets when `EXT_color_buffer_float` is available, motion trails via a feedback buffer, exposure, and vignette.
-- **Forces** — gravity with manual / cardinal-cycle / random-wander / continuous-rotate / device-tilt modes and smooth transitions, plus wind direction, strength, and turbulence.
-- **Material model** — ball & wall restitution, air drag, contact viscosity, solver passes, constraint compliance, and cohesion (surface tension) for holding blobs together.
-- **Curated material presets** — Jelly, Ocean water, Mud, and Vapor, each a bundle of look + optional kinetics.
-- **Sharing** — built-in scene presets, localStorage save/load, and JSON preset **export/import** with input validation.
-- **Capture** — PNG screenshots, WebM recording, and fullscreen.
-- **Live stats** — FPS, frame time, contact count, ball count, and detected GPU.
+- **WebGL 2 instanced rendering**: up to 5,000 balls, mixed or single-size, mass-aware collisions.
+- **Two render modes**: lit spheres, or a **metaball fluid** surface that fuses touching balls into a single thresholded iso-surface.
+- **Physical lighting**: Fresnel/rim from an adjustable index of refraction, specular strip highlight, clarity, translucency, and a distance-based light falloff, all shared between the sphere and metaball passes.
+- **Pressure-field coloring**: a per-ball load signal (penetration-sum EMA) drives hue and brightness, so tightly packed piles read hot; optional contact-graph diffusion makes dense clumps share one color.
+- **Post-processing**: GPU bloom with separable Gaussian blur, HDR render targets when `EXT_color_buffer_float` is available, motion trails via a feedback buffer, exposure, and vignette.
+- **Forces**: gravity with manual / cardinal-cycle / random-wander / continuous-rotate / device-tilt modes and smooth transitions, plus wind direction, strength, and turbulence.
+- **Material model**: ball & wall restitution, air drag, contact viscosity, solver passes, constraint compliance, and cohesion (surface tension) for holding blobs together.
+- **Curated material presets**: Jelly, Ocean water, Mud, and Vapor, each a bundle of look + optional kinetics.
+- **Sharing**: built-in scene presets, localStorage save/load, and JSON preset **export/import** with input validation.
+- **Capture**: PNG screenshots, WebM recording, and fullscreen.
+- **Live stats**: FPS, frame time, contact count, ball count, and detected GPU.
 
 ## Controls
 
@@ -66,7 +69,7 @@ Download the repo and double-click:
 webgl/fluidballs-webgl-single.html
 ```
 
-That one file contains the HTML, CSS, JavaScript, and GLSL shaders. It has no external runtime dependency and needs no server — it even works over `file://` in browsers like Brave that isolate sibling local files.
+That one file contains the HTML, CSS, JavaScript, and GLSL shaders. It has no external runtime dependency and needs no server! It even works over `file://` in browsers like Brave that isolate sibling local files.
 
 The split source (`webgl/index.html`, `style.css`, `js/`) is the version you edit. Some browsers apply per-file security origins to sibling `file://` resources, so the split version may need a local HTTP server:
 
