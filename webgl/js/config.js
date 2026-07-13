@@ -69,9 +69,11 @@
 
   root.PRESETS = Object.freeze({
     // Flagship showcase preset (full settings) — also the startup default (main.js).
-    // Ball count / solver passes / physics Hz tuned down for broad hardware (iPad).
+    // Ball count / solver passes tuned down for broad hardware (iPad). physicsHz 90
+    // is the FLOOR where the emergent "synaptic" pressure patterns crackle to life
+    // reliably — at 60 they only flicker intermittently. Do not lower it.
     synaptic: {
-      ballCount: 2500, sizeMode: 'mixed', radius: 11.5, radiusMin: 4, radiusMax: 8, solverIterations: 2, physicsHz: 60, compliance: 0,
+      ballCount: 2500, sizeMode: 'mixed', radius: 11.5, radiusMin: 4, radiusMax: 8, solverIterations: 2, physicsHz: 90, compliance: 0,
       gravityMode: 'cardinal', gravityStrength: 30, gravityAngle: 21, gravityCycleTime: 6.1, gravityTransitionTime: 1.2,
       windStrength: 10, windAngle: 45, windTurbulence: 0.16,
       elasticity: 1.14, wallBounce: 1.15, airDrag: 0.06, contactViscosity: 0.49, clumpAffinity: 890, splitEnergy: 300,
@@ -81,6 +83,21 @@
       lightAngle: 224, lightWidth: 0.97, lightSoftness: 0.73, ior: 1.93, clarity: 0.85, translucency: 0.91, lightFalloff: 6, bandPosition: 0, bandWidth: 0.15,
       tintColor: '#2aa6ff', tintStrength: 0,
       mouseMode: 'vortex', mouseStrength: 4500, mouseRadius: 500,
+    },
+    // Second showcase preset (full settings). Slow rotating gravity drags the
+    // metaball sheet around after itself, so the body of "water" perpetually
+    // chases its own wake. Heavier than synaptic — 3500 balls, 5 solver passes.
+    oceanTail: {
+      ballCount: 3500, sizeMode: 'mixed', radius: 11.5, radiusMin: 3, radiusMax: 4, solverIterations: 5, physicsHz: 60, compliance: 0.00052,
+      gravityMode: 'rotate', gravityStrength: 340, gravityAngle: 26, gravityCycleTime: 16, gravityTransitionTime: 5,
+      windStrength: 10, windAngle: 45, windTurbulence: 0.16,
+      elasticity: 1.2, wallBounce: 1.2, airDrag: 0.11, contactViscosity: 0.3, clumpAffinity: 850, splitEnergy: 200,
+      renderMode: 'metaball', fusionThreshold: 0.9, edgeSoftness: 0.005, fieldRadius: 2.5, specFusion: 10.5,
+      colorMode: 'mono', baseHue: 216, hueSpread: 273, colorSpeed: 0, pressureScale: 0.8, pressureDiffuse: false,
+      glow: 0, bloomStrength: 1.12, trailPersistence: 0.145, exposure: 3, backgroundColor: '#02050b', bloomEnabled: true, vignette: false, msaa: true,
+      lightAngle: 27, lightWidth: 0.87, lightSoftness: 0, ior: 1, clarity: 0, translucency: 1, lightFalloff: 6, bandPosition: 0.52, bandWidth: 0.15,
+      tintColor: '#2aa6ff', tintStrength: 0,
+      mouseMode: 'attract', mouseStrength: 4500, mouseRadius: 500,
     },
     classic: {
       gravityMode: 'cardinal', gravityStrength: 780, gravityCycleTime: 5,

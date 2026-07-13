@@ -57,7 +57,10 @@
       bind('screenshotButton', () => this.callbacks.onScreenshot?.());
       bind('recordButton', () => this.callbacks.onRecord?.());
       bind('fullscreenButton', () => this.callbacks.onFullscreen?.());
-      bind('applyPresetButton', () => this.callbacks.onApplyPreset?.(document.getElementById('presetSelect').value));
+      bind('applyPresetButton', () => {
+        const select = document.getElementById('presetSelect');
+        this.callbacks.onApplyPreset?.(select.value, select.selectedOptions[0]?.textContent ?? select.value);
+      });
       bind('applyMaterialButton', () => this.callbacks.onApplyMaterial?.(
         document.getElementById('materialSelect').value,
         document.getElementById('materialKinetics').checked

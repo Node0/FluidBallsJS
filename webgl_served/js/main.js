@@ -335,10 +335,10 @@
       onScreenshot: takeScreenshot,
       onRecord: toggleRecording,
       onFullscreen: toggleFullscreen,
-      onApplyPreset: (name) => {
+      onApplyPreset: (name, label) => {
         applySettings(root.PRESETS[name]);
         simulation.reset();
-        ui.toast(`Applied ${name} preset`);
+        ui.toast(`Applied ${label || name} preset`);
       },
       onApplyMaterial: (name, withKinetics) => {
         const material = root.MATERIALS[name];
